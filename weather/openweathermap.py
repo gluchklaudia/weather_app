@@ -13,7 +13,10 @@ class Coordinates:
 class OpenWeatherMap:
     _api_url = "http://api.openweathermap.org"
     _geocoding_endpoint_template = "geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
-    
+    _current_weather_endpoint_template = (
+        "data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+    )
+
     def __init__(self, api_key: str = None):
         # os.environ - wczytywanie zmiennych systemowych.
         self.api_key = api_key if api_key else os.environ["api_key"]
@@ -27,5 +30,23 @@ class OpenWeatherMap:
         if response.ok:
             first_data = response.json()[0]
             return Coordinates(lat=first_data["lat"], lon=first_data["lon"])
+        else:
+            print(response.status_code)
+
+    def get_current_weather(self, city_coordinates: Coordinates):
+        endpoint = self._current_weather_endpoint_template.format(
+            lat=city_coordinates.lat, lon=city_coordinates.lon, api_key=self.api_key
+        )
+        url = urllib.parse.urljoin(self._api_url, endpoint)
+        response = requests.get(url)
+        if response.ok:
+            json_data = response.json()
+            result = {
+                "city_name": json_data["name"],
+                "weather": json_data["weather"][0]["main"],
+                "temperature": json_data["main"]["temp"],
+                "feels_temperature": json_data["main"]["feels_like"],
+            }
+            return result
         else:
             print(response.status_code)
