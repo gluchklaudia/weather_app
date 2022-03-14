@@ -10,6 +10,14 @@ class Coordinates:
     lon: float
 
 
+@dataclass
+class WeatherInfo:
+    city_name: str
+    weather: str
+    temperature: float
+    feels_temperature: float
+
+
 class OpenWeatherMap:
     _api_url = "http://api.openweathermap.org"
     _geocoding_endpoint_template = "geo/1.0/direct?q={city_name}&limit=1&appid={api_key}"
@@ -41,12 +49,11 @@ class OpenWeatherMap:
         response = requests.get(url)
         if response.ok:
             json_data = response.json()
-            result = {
-                "city_name": json_data["name"],
-                "weather": json_data["weather"][0]["main"],
-                "temperature": json_data["main"]["temp"],
-                "feels_temperature": json_data["main"]["feels_like"],
-            }
-            return result
+            return WeatherInfo(
+                city_name=json_data["name"],
+                weather=json_data["weather"][0]["main"],
+                temperature=json_data["main"]["temp"],
+                feels_temperature=json_data["main"]["feels_like"],
+            )
         else:
             print(response.status_code)
